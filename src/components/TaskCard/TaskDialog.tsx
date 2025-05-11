@@ -33,6 +33,7 @@ import { Calendar } from "../ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 import { cn } from "../../lib/utils";
 import type { Task, TaskStatus } from "@/types";
+import { useEffect } from "react";
 
 const taskFormSchema = z.object({
   title: z.string().min(1, { message: "Title is required" }).max(100),
@@ -98,6 +99,17 @@ export function TaskDialog({
     }
     onOpenChange(false);
   };
+
+  useEffect(() => {
+    if (open && !isEditing) {
+      form.reset({
+        title: "",
+        description: "",
+        status: defaultStatus,
+        dueDate: null,
+      });
+    }
+  }, [open, isEditing, defaultStatus, form]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

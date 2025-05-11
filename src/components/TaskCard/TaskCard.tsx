@@ -32,6 +32,7 @@ interface TaskCardProps {
 }
 
 export function TaskCard({ task }: TaskCardProps) {
+  const { status } = task;
   const {
     attributes,
     listeners,
@@ -44,6 +45,7 @@ export function TaskCard({ task }: TaskCardProps) {
     data: {
       type: "task",
       task,
+      columnId: status
     },
   });
 
@@ -98,12 +100,13 @@ export function TaskCard({ task }: TaskCardProps) {
               {...attributes}
               {...listeners}
               className="cursor-grab touch-none"
+              data-column-id = {status}
             >
               <Grip className="h-4 w-4 text-muted-foreground" />
             </div>
           </div>
 
-          <p className="text-sm text-muted-foreground line-clamp-2 mb-2">
+          <p className="text-sm text-start text-muted-foreground line-clamp-2 mb-2">
             {task.description || "No description"}
           </p>
 

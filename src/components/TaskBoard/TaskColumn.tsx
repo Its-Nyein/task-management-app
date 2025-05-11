@@ -1,4 +1,4 @@
-import { useDndMonitor, useDroppable } from "@dnd-kit/core";
+import { useDroppable } from "@dnd-kit/core";
 import {
   SortableContext,
   verticalListSortingStrategy,
@@ -6,7 +6,6 @@ import {
 import { TaskCard } from "../TaskCard/TaskCard";
 import { PlusCircle } from "lucide-react";
 import { Button } from "../ui/button";
-import { useState } from "react";
 import { cn } from "../../lib/utils";
 import type { Column, Task } from "@/types";
 
@@ -17,24 +16,14 @@ interface TaskColumnProps {
 }
 
 export function TaskColumn({ column, tasks, onAddTask }: TaskColumnProps) {
-  const [isOver, setIsOver] = useState(false);
   const { id, title } = column;
   const taskIds = tasks.map((task) => task.id);
 
-  const { setNodeRef } = useDroppable({
+  const { setNodeRef, isOver } = useDroppable({
     id: id,
-  });
-
-  useDndMonitor({
-    onDragOver(event) {
-      if (event.over && event.over.id === id) {
-        setIsOver(true);
-      } else {
-        setIsOver(false);
-      }
-    },
-    onDragEnd() {
-      setIsOver(false);
+    data: {
+      type: "column",
+      columnId: id,
     },
   });
 
@@ -66,10 +55,11 @@ export function TaskColumn({ column, tasks, onAddTask }: TaskColumnProps) {
 
   return (
     <div
+      ref={setNodeRef}
       className={cn(
         "flex h-full w-full flex-col rounded-xl border-2 transition-colors duration-200",
         getColumnColor(),
-        isOver && "ring-2 ring-primary/20"
+        isOver && "ring-2 ring-primary/50"
       )}
     >
       <div className="flex items-center justify-between p-4 border-b border-border/50">
@@ -95,16 +85,25 @@ export function TaskColumn({ column, tasks, onAddTask }: TaskColumnProps) {
         </Button>
       </div>
 
-      <div ref={setNodeRef} className="flex-grow overflow-y-auto p-4">
+      <div 
+        className="flex-grow overflow-y-auto p-4"
+        data-droppable="true"
+      >
         <SortableContext items={taskIds} strategy={verticalListSortingStrategy}>
           {tasks.length > 0 ? (
-            <div className="flex flex-col gap-3">
+            <div 
+              className="flex flex-col gap-3 min-h-[100px]"
+              data-column-id={id}
+            >
               {tasks.map((task) => (
                 <TaskCard key={task.id} task={task} />
               ))}
             </div>
           ) : (
-            <div className="flex h-24 items-center justify-center rounded-lg border-2 border-dashed border-border/50 p-4 text-sm text-muted-foreground">
+            <div 
+              className="flex h-24 items-center justify-center rounded-lg border-2 border-dashed border-border/50 p-4 text-sm text-muted-foreground"
+              data-column-id={id}
+            >
               Drop tasks here
             </div>
           )}

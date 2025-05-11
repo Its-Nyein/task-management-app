@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import {
   DndContext,
   DragOverlay,
-  closestCorners,
+  closestCenter,
   type DragEndEvent,
   type DragStartEvent,
 } from "@dnd-kit/core";
@@ -41,18 +41,29 @@ export function TaskBoard() {
 
   const handleDragEnd = async (event: DragEndEvent) => {
     const { active, over } = event;
+    
+    const taskData = active.data.current?.task;
+    setActiveTask(null);
 
-    if (!over) {
-      setActiveTask(null);
+    if (!over || !taskData) {
       return;
     }
 
-    if (over.id !== active.data.current?.task.status) {
-      const newStatus = over.id as TaskStatus;
-      await moveTask(active.id as string, newStatus);
+    const overData = over.data.current;
+    const targetColumnId = overData?.type === "column" 
+      ? overData.columnId 
+      : overData?.columnId;
+    
+    if (!targetColumnId) {
+      return;
     }
 
-    setActiveTask(null);
+    const currentStatus = taskData.status;
+    const targetStatus = targetColumnId as TaskStatus;
+    
+    if (columns.some(col => col.id === targetStatus) && targetStatus !== currentStatus) {
+      await moveTask(active.id as string, targetStatus);
+    }
   };
 
   const handleAddTask = (status: TaskStatus) => {
@@ -75,7 +86,7 @@ export function TaskBoard() {
       </Button>
 
       <DndContext
-        collisionDetection={closestCorners}
+        collisionDetection={closestCenter}
         onDragStart={handleDragStart}
         onDragEnd={handleDragEnd}
       >
