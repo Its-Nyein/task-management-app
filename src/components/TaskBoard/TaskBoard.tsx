@@ -2,9 +2,11 @@ import { useState, useEffect } from "react";
 import {
   DndContext,
   DragOverlay,
-  closestCenter,
+  pointerWithin,
+  rectIntersection,
   type DragEndEvent,
   type DragStartEvent,
+  type DragOverEvent,
 } from "@dnd-kit/core";
 import { TaskColumn } from "./TaskColumn";
 import { useTaskStore } from "../../hooks/useTaskStore";
@@ -13,6 +15,7 @@ import { TaskDialog } from "../TaskCard/TaskDialog";
 import { Button } from "../ui/button";
 import { PlusCircle } from "lucide-react";
 import type { Column, Task, TaskStatus } from "@/types";
+import type { CollisionDetection } from "@dnd-kit/core";
 
 const columns: Column[] = [
   { id: "todo", title: "To Do", color: "blue" },
@@ -25,6 +28,8 @@ export function TaskBoard() {
   const [activeTask, setActiveTask] = useState<Task | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [dialogStatus, setDialogStatus] = useState<TaskStatus>("todo");
+  const [activeId, setActiveId] = useState<string | null>(null);
+  const [overId, setOverId] = useState<string | null>(null);
 
   useEffect(() => {
     fetchTasks();
@@ -33,10 +38,16 @@ export function TaskBoard() {
   const handleDragStart = (event: DragStartEvent) => {
     const { active } = event;
     const activeData = active.data.current;
+    setActiveId(active.id as string);
 
     if (activeData?.type === "task") {
       setActiveTask(activeData.task);
     }
+  };
+
+  const handleDragOver = (event: DragOverEvent) => {
+    const { over } = event;
+    setOverId(over?.id as string ?? null);
   };
 
   const handleDragEnd = async (event: DragEndEvent) => {
@@ -44,6 +55,8 @@ export function TaskBoard() {
     
     const taskData = active.data.current?.task;
     setActiveTask(null);
+    setActiveId(null);
+    setOverId(null);
 
     if (!over || !taskData) {
       return;
@@ -75,6 +88,16 @@ export function TaskBoard() {
     return tasks.filter((task) => task.status === status);
   };
 
+  const collisionDetectionStrategy: CollisionDetection = (args) => {
+    const pointerCollisions = pointerWithin(args);
+    if (pointerCollisions.length > 0) {
+      return pointerCollisions;
+    }
+  
+    const rectCollisions = rectIntersection(args);
+    return rectCollisions;
+  };
+
   return (
     <div className="flex flex-col gap-6">
       <Button
@@ -86,8 +109,9 @@ export function TaskBoard() {
       </Button>
 
       <DndContext
-        collisionDetection={closestCenter}
+        collisionDetection={collisionDetectionStrategy}
         onDragStart={handleDragStart}
+        onDragOver={handleDragOver}
         onDragEnd={handleDragEnd}
       >
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -97,12 +121,14 @@ export function TaskBoard() {
               column={column}
               tasks={getTasksByStatus(column.id)}
               onAddTask={handleAddTask}
+              activeId={activeId}
+              overId={overId}
             />
           ))}
         </div>
 
         <DragOverlay>
-          {activeTask && <TaskCard task={activeTask} />}
+          {activeTask && <TaskCard task={activeTask} isDragging />}
         </DragOverlay>
       </DndContext>
 

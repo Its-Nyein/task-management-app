@@ -13,9 +13,11 @@ interface TaskColumnProps {
   column: Column;
   tasks: Task[];
   onAddTask: (status: Column["id"]) => void;
+  activeId: string | null;
+  overId: string | null;
 }
 
-export function TaskColumn({ column, tasks, onAddTask }: TaskColumnProps) {
+export function TaskColumn({ column, tasks, onAddTask, activeId, overId }: TaskColumnProps) {
   const { id, title } = column;
   const taskIds = tasks.map((task) => task.id);
 
@@ -26,6 +28,8 @@ export function TaskColumn({ column, tasks, onAddTask }: TaskColumnProps) {
       columnId: id,
     },
   });
+
+  const isColumnOver = isOver || overId === id;
 
   const getColumnColor = () => {
     switch (id) {
@@ -59,7 +63,8 @@ export function TaskColumn({ column, tasks, onAddTask }: TaskColumnProps) {
       className={cn(
         "flex h-full w-full flex-col rounded-xl border-2 transition-colors duration-200",
         getColumnColor(),
-        isOver && "ring-2 ring-primary/50"
+        isColumnOver && "ring-2 ring-primary/50",
+        activeId && !isColumnOver && "opacity-60"
       )}
     >
       <div className="flex items-center justify-between p-4 border-b border-border/50">
@@ -86,7 +91,10 @@ export function TaskColumn({ column, tasks, onAddTask }: TaskColumnProps) {
       </div>
 
       <div 
-        className="flex-grow overflow-y-auto p-4"
+        className={cn(
+          "flex-grow overflow-y-auto p-4 transition-colors duration-200",
+          isColumnOver && "bg-primary/5"
+        )}
         data-droppable="true"
       >
         <SortableContext items={taskIds} strategy={verticalListSortingStrategy}>
@@ -96,12 +104,20 @@ export function TaskColumn({ column, tasks, onAddTask }: TaskColumnProps) {
               data-column-id={id}
             >
               {tasks.map((task) => (
-                <TaskCard key={task.id} task={task} />
+                <TaskCard 
+                  key={task.id} 
+                  task={task} 
+                  isOver={overId === task.id}
+                  isActive={activeId === task.id}
+                />
               ))}
             </div>
           ) : (
             <div 
-              className="flex h-24 items-center justify-center rounded-lg border-2 border-dashed border-border/50 p-4 text-sm text-muted-foreground"
+              className={cn(
+                "flex h-24 items-center justify-center rounded-lg border-2 border-dashed border-border/50 p-4 text-sm text-muted-foreground transition-colors duration-200",
+                isColumnOver && "bg-primary/10 border-primary/30"
+              )}
               data-column-id={id}
             >
               Drop tasks here

@@ -29,9 +29,12 @@ import { useTaskStore } from "../../hooks/useTaskStore";
 
 interface TaskCardProps {
   task: Task;
+  isOver?: boolean;
+  isActive?: boolean;
+  isDragging?: boolean;
 }
 
-export function TaskCard({ task }: TaskCardProps) {
+export function TaskCard({ task, isOver = false, isActive = false, isDragging = false }: TaskCardProps) {
   const { status } = task;
   const {
     attributes,
@@ -39,7 +42,6 @@ export function TaskCard({ task }: TaskCardProps) {
     setNodeRef,
     transform,
     transition,
-    isDragging,
   } = useSortable({
     id: task.id,
     data: {
@@ -90,7 +92,9 @@ export function TaskCard({ task }: TaskCardProps) {
         style={style}
         className={cn(
           "border shadow-sm transition-all",
-          isDragging && "opacity-50 shadow-md rotate-3 z-10 cursor-grabbing"
+          (isDragging || isActive) && "opacity-50 shadow-md rotate-3 z-10 cursor-grabbing",
+          isOver && "ring-2 ring-primary shadow-md",
+          isOver && !isActive && "translate-y-1"
         )}
       >
         <CardContent className="p-3">
@@ -100,7 +104,7 @@ export function TaskCard({ task }: TaskCardProps) {
               {...attributes}
               {...listeners}
               className="cursor-grab touch-none"
-              data-column-id = {status}
+              data-column-id={status}
             >
               <Grip className="h-4 w-4 text-muted-foreground" />
             </div>
