@@ -34,6 +34,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 import { cn } from "../../lib/utils";
 import type { Task, TaskStatus } from "@/types";
 import { useEffect } from "react";
+import { toast } from "sonner";
 
 const taskFormSchema = z.object({
   title: z.string().min(1, { message: "Title is required" }).max(100),
@@ -81,6 +82,14 @@ export function TaskDialog({
     defaultValues,
   });
 
+  const getStatusLabel = (status: TaskStatus) => {
+    return status === "todo"
+      ? "To Do"
+      : status === "in-progress"
+      ? "In Progress"
+      : "Done";
+  };
+
   const onSubmit = async (data: TaskFormValues) => {
     if (isEditing) {
       await updateTask(task.id, {
@@ -89,12 +98,22 @@ export function TaskDialog({
         status: data.status,
         dueDate: data.dueDate ? data.dueDate.getTime() : undefined,
       });
+
+      toast.success(`Task updated: "${data.title}"`, {
+        description: `The task has been successfully updated`,
+      });
     } else {
       await addTask({
         title: data.title,
         description: data.description || "",
         status: data.status,
         dueDate: data.dueDate ? data.dueDate.getTime() : undefined,
+      });
+
+      toast.success(`Task created: "${data.title}"`, {
+        description: `New task has been added to ${getStatusLabel(
+          data.status
+        )}`,
       });
     }
     onOpenChange(false);

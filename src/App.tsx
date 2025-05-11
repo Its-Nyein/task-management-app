@@ -2,11 +2,13 @@ import "./App.css";
 import { TaskBoard } from "./components/TaskBoard/TaskBoard";
 import { ThemeProvider } from "./components/ThemeProvider";
 import { ThemeToggle } from "./components/ThemeToggle";
+import { TaskToast } from "./hooks/useToast";
 
 function App() {
   return (
     <ThemeProvider defaultTheme="system" storageKey="taskflow-theme">
       <main className="min-h-screen bg-background text-foreground">
+        <TaskToast/>
         <div className="mx-auto max-w-7xl p-4 sm:p-6 lg:p-8">
           <header className="mb-8">
             <div className="flex items-center justify-between">

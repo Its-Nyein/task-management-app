@@ -26,6 +26,7 @@ import {
 } from "../ui/alert-dialog";
 import type { Task } from "@/types";
 import { useTaskStore } from "../../hooks/useTaskStore";
+import { toast } from "sonner";
 
 interface TaskCardProps {
   task: Task;
@@ -63,6 +64,9 @@ export function TaskCard({ task, isOver = false, isActive = false, isDragging = 
   const handleDelete = async () => {
     await deleteTask(task.id);
     setIsDeleting(false);
+    toast.success(`Task "${task.title}" was deleted`, {
+      description: "The task has been deleted",
+    });
   };
 
   const getStatusColor = () => {
